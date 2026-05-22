@@ -1,18 +1,61 @@
-        let ranges = document.querySelectorAll(".skills .skill span");
-        let sections = document.querySelectorAll(".sec")
-        ranges.forEach((span)=>{
-        span.style.width = span.parentElement.getAttribute("data-value")
-        })
+document.addEventListener("DOMContentLoaded", () => {
 
+    // --- 1. Select New Side Nav Links ---
+    const navLinks = document.querySelectorAll(".side-nav a");
+    const sections = document.querySelectorAll("section");
 
-        const observer = new IntersectionObserver((arr)=>{arr.forEach((elem)=>{
-            if(elem.isIntersecting){
-                elem.target.style.opacity =1;
+    // --- 2. Scroll Reveal Animation & Dynamic Skills Tracker ---
+    const reveals = document.querySelectorAll(".reveal");
+    const skillSpans = document.querySelectorAll(".range span");
+
+    const revealOptions = {
+        threshold: 0.15,
+        rootMargin: "0px 0px -50px 0px"
+    };
+
+    const revealOnScroll = new IntersectionObserver(function(entries, observer) {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            
+            entry.target.classList.add("active");
+            
+            // Trigger skill loaders once inside view
+            if(entry.target.closest('#skills')) {
+                skillSpans.forEach(span => {
+                    const value = span.getAttribute("data-value");
+                    span.style.width = value;
+                });
             }
-        })}, {threshold:0.3});
+            
+            observer.unobserve(entry.target);
+        });
+    }, revealOptions);
 
+    reveals.forEach(reveal => {
+        revealOnScroll.observe(reveal);
+    });
 
+    // --- 3. Refined ScrollSpy Logic for Side Navigation ---
+    window.addEventListener("scroll", () => {
+        let currentSectionId = "";
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            
+            // Evaluates active sector relative to view threshold
+            if (window.pageYOffset >= (sectionTop - sectionHeight / 3)) {
+                currentSectionId = section.getAttribute("id");
+            }
+        });
 
-        sections.forEach((elem)=>{
-            observer.observe(elem)
-        })
+        navLinks.forEach(link => {
+            link.classList.remove("active");
+            const targetHref = link.getAttribute("href");
+            
+            if (targetHref.includes(currentSectionId)) {
+                link.classList.add("active");
+            }
+        });
+    });
+});
